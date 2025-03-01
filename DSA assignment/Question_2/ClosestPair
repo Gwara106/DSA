@@ -1,0 +1,64 @@
+// You have two points in a 2D plane, represented by the arrays x_coords and y_coords. The goal is to find
+// the lexicographically pair i.e. (i, j) of points (one from each array) that are closest to each other.
+// Goal:
+// Determine the lexicographically pair of points with the smallest distance and smallest distance calculated
+// using
+// | x_coords [i] - x_coords [j]| + | y_coords [i] - y_coords [j]|
+// Note that
+// |x| denotes the absolute value of x.
+// A pair of indices (i1, j1) is lexicographically smaller than (i2, j2) if i1 < i2 or i1 == i2 and j1 < j2.
+// Input:
+// x_coords: The array of x-coordinates of the points.
+// y_coords: The array of y-coordinates of the points.
+// Output:
+// The indices of the closest pair of points.
+// Input: x_coords = [1, 2, 3, 2, 4], y_coords = [2, 3, 1, 2, 3]
+// Output: [0, 3]
+// Explanation: Consider index 0 and index 3. The value of | x_coords [i]- x_coords [j]| + | y_coords [i]-
+// y_coords [j]| is 1, which is the smallest value we can achieve.
+// [
+
+public class ClosestPair {
+    // Function to query the closest pair of points from a database-like collection
+    public static int[] findClosestPair(int[] x_coords, int[] y_coords) {
+        int n = x_coords.length; // Total number of point records
+        int min_dist = Integer.MAX_VALUE; // Set initial minimum distance to a high value in the table
+        int best_i = -1; // Index of the first point in the closest pair record
+        int best_j = -1; // Index of the second point in the closest pair record
+
+        // Scan all pair records (i, j) where i < j in the dataset
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                // Compute Manhattan distance between two point entries
+                int dist = Math.abs(x_coords[i] - x_coords[j]) + Math.abs(y_coords[i] - y_coords[j]);
+
+                // Update the table if this distance is less than the current minimum
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    best_i = i;
+                    best_j = j;
+                }
+                // If distance matches the minimum, select the lexicographically smaller pair entry
+                else if (dist == min_dist) {
+                    if (i < best_i || (i == best_i && j < best_j)) {
+                        best_i = i;
+                        best_j = j;
+                    }
+                }
+            }
+        }
+
+        // Retrieve the indices of the closest pair from the table
+        return new int[]{best_i, best_j};
+    }
+
+    // Demonstration function to test the database-like query process
+    public static void main(String[] args) {
+        // Sample dataset: coordinates for querying
+        int[] x_coords = {1, 2, 3, 2, 4};
+        int[] y_coords = {2, 3, 1, 2, 3};
+        
+        int[] result = findClosestPair(x_coords, y_coords);
+        System.out.println("Closest pair indices: [" + result[0] + ", " + result[1] + "]");
+    }
+}
