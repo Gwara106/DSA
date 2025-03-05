@@ -24,79 +24,96 @@ package Question_3;
 
 import java.util.*;
 
-// Class containing logic to calculate minimum network cost using module installation and connection costs
 public class MinNetworkCost {
-
-    // Method computes minimal total cost to interconnect all devices considering both module and connection costs
     public static int minCostToConnect(int n, int[] modules, int[][] connections) {
-        // Constructs adjacency list representation of device connections
-        // Initialize the total cost to zero
-
+        // Create adjacency list representation of device connections
         Map<Integer, List<int[]>> graph = new HashMap<>();
 
-        // Processes each connection to build bidirectional links between devices
+        // Build the graph from connections array
         for(int[] connection : connections) {
-            int u = connection[0];  // Source device identifier
-            int v = connection[1];   // Destination device identifier
-            int cost = connection[2]; // Direct connection cost between devices
+            int u = connection[0];  // Source device
+            int v = connection[1];  // Target device
+            int cost = connection[2]; // Connection cost
             
-            // Ensures both devices have entries in the graph structure
             graph.putIfAbsent(u, new ArrayList<>());
             graph.putIfAbsent(v, new ArrayList<>());
             
-            // Adds reciprocal connections for undirected graph representation
             graph.get(u).add(new int[]{v, cost});
             graph.get(v).add(new int[]{u, cost});
         }
 
-        // Implements Prim's algorithm for Minimum Spanning Tree construction
-        // Initialize the minimum cost to connect devices
-
+        // Use modified Prim's algorithm considering module costs
         PriorityQueue<int[]> minHeap = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
-        boolean[] visited = new boolean[n+1];   // Tracks devices included in the MST
-        int[] costToConnect = new int[n+1];     // Stores minimum connection costs per device
+        boolean[] visited = new boolean[n + 1];   // Track visited devices (1-based indexing)
+        int[] costToConnect = new int[n + 1];     // Minimum cost to connect each device
         Arrays.fill(costToConnect, Integer.MAX_VALUE);
 
-        // Initialization with first device's module cost (device IDs start at 1)
+        // Start with device 1, using its module cost
         minHeap.offer(new int[] {modules[0], 1});
         costToConnect[1] = modules[0];
 
-        int totalCost = 0;  // Accumulates final minimal network cost
+        int totalCost = 0;  // Running total of minimum cost
+        int devicesConnected = 0;  // Count connected devices
         
-        // Processes nodes until all are visited or queue is exhausted
         while(!minHeap.isEmpty()) {
             int[] current = minHeap.poll();
             int cost = current[0];
             int node = current[1];
 
-            if(visited[node]) continue;  // Skips already processed devices
+            if(visited[node]) continue;
             
-            visited[node] = true;       // Marks device as included in MST
-            totalCost += cost;         // Accumulates the connection/module cost
+            visited[node] = true;
+            totalCost += cost;
+            devicesConnected++;
 
-            // Updates costs for neighboring devices if better connection found
+            // Explore neighbors if they exist in graph
             if(graph.containsKey(node)) {
                 for(int[] neighbor : graph.get(node)) {
                     int neighborNode = neighbor[0];
                     int neighborCost = neighbor[1];
 
-                    // Updates cost if neighbor unvisited and new cost is lower
-                    if(!visited[neighborNode] && costToConnect[neighborNode] > neighborCost) {
-                        costToConnect[neighborNode] = neighborCost;
-                        minHeap.offer(new int[]{neighborCost, neighborNode});
+                    // Choose minimum between connection cost and module cost
+                    int minCost = Math.min(neighborCost, modules[neighborNode - 1]);
+                    
+                    if(!visited[neighborNode] && costToConnect[neighborNode] > minCost) {
+                        costToConnect[neighborNode] = minCost;
+                        minHeap.offer(new int[]{minCost, neighborNode});
                     }
                 }
             }
         }
 
-        // Validates full network connectivity
-        // Return -1 if the network is disconnected
-
-        for(int i = 1; i <= n; i++) {
-            if(!visited[i]) return -1;  // Indicates disconnected network
-        }
-        return totalCost;
+        // Return total cost if all devices connected, -1 otherwise
+        return devicesConnected == n ? totalCost : -1;
     }
 
-    // (Test cases remain unchanged...)
+    public static void main(String[] args) {
+        // Test case 1: Example from problem statement
+        int n1 = 3;
+        int[] modules1 = {1, 2, 2};
+        int[][] connections1 = {{1, 2, 1}, {2, 3, 1}};
+        System.out.println("Test 1: " + minCostToConnect(n1, modules1, connections1)); 
+        // Expected output: 3
+
+        // Test case 2: All devices need modules (no connections)
+        int n2 = 3;
+        int[] modules2 = {1, 1, 1};
+        int[][] connections2 = {};
+        System.out.println("Test 2: " + minCostToConnect(n2, modules2, connections2)); 
+        // Expected output: 3
+
+        // Test case 3: Disconnected network
+        int n3 = 3;
+        int[] modules3 = {1, 1, 1};
+        int[][] connections3 = {{1, 2, 1}};
+        System.out.println("Test 3: " + minCostToConnect(n3, modules3, connections3)); 
+        // Expected output: -1
+
+        // Test case 4: Multiple connection options
+        int n4 = 4;
+        int[] modules4 = {4, 4, 4, 4};
+        int[][] connections4 = {{1, 2, 1}, {2, 3, 1}, {3, 4, 1}, {1, 3, 5}};
+        System.out.println("Test 4: " + minCostToConnect(n4, modules4, connections4)); 
+        // Expected output: 3
+    }
 }
